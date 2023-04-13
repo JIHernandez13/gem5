@@ -56,11 +56,13 @@ class LFRU : public Base
     {
         /** Number of references to this entry since it was reset. */
         unsigned refCount;
+        Tick lastTouchTick;
 
         /**
          * Default constructor. Invalidate data.
          */
-        LFRUReplData() : refCount(0) {}
+        // LFRUReplData() : refCount(0) {}
+        LFRUReplData() : refCount(0), lastTouchTick(0) {}
     };
 
   public:

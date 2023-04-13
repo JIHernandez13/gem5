@@ -50,6 +50,8 @@ LFRU::invalidate(const std::shared_ptr<ReplacementData>& replacement_data)
 {
     // Reset reference count
     std::static_pointer_cast<LFRUReplData>(replacement_data)->refCount = 0;
+    std::static_pointer_cast<LFRUReplData>(
+        replacement_data)->lastTouchTick = Tick(0);
 }
 
 void
@@ -57,6 +59,10 @@ LFRU::touch(const std::shared_ptr<ReplacementData>& replacement_data) const
 {
     // Update reference count
     std::static_pointer_cast<LFRUReplData>(replacement_data)->refCount++;
+
+    // Update last touch timestamp
+    std::static_pointer_cast<LFRUReplData>(
+        replacement_data)->lastTouchTick = curTick();
 }
 
 void
@@ -64,12 +70,23 @@ LFRU::reset(const std::shared_ptr<ReplacementData>& replacement_data) const
 {
     // Reset reference count
     std::static_pointer_cast<LFRUReplData>(replacement_data)->refCount = 1;
+
+    // Set last touch timestamp
+    std::static_pointer_cast<LFRUReplData>(
+        replacement_data)->lastTouchTick = curTick();
 }
 
 ReplaceableEntry*
 LFRU::getVictim(const ReplacementCandidates& candidates) const
 {
+    // implement lfru getVictim
+    // LFRU: Least Frequently Recently Used
+    // LFRU is a combination of LRU and LFU.
+    // It picks the victim with the lowest reference count.
+    // If there are multiple entries with the same reference count,
+    // it picks the victim with the lowest last touch timestamp.
     // There must be at least one replacement candidate
+
     assert(candidates.size() > 0);
 
     // Visit all candidates to find victim
@@ -81,8 +98,33 @@ LFRU::getVictim(const ReplacementCandidates& candidates) const
                 std::static_pointer_cast<LFRUReplData>(
                     victim->replacementData)->refCount) {
             victim = candidate;
+        } else if (std::static_pointer_cast<LFRUReplData>(
+                       candidate->replacementData)->refCount ==
+                   std::static_pointer_cast<LFRUReplData>(
+                       victim->replacementData)->refCount) {
+            if (std::static_pointer_cast<LFRUReplData>(
+                        candidate->replacementData)->lastTouchTick <
+                    std::static_pointer_cast<LFRUReplData>(
+                        victim->replacementData)->lastTouchTick) {
+                victim = candidate;
+            }
         }
     }
+
+// old impmentation
+//     assert(candidates.size() > 0);
+
+//     // Visit all candidates to find victim
+//     ReplaceableEntry* victim = candidates[0];
+//     for (const auto& candidate : candidates) {
+//         // Update victim entry if necessary
+//         if (std::static_pointer_cast<LFRUReplData>(
+//                     candidate->replacementData)->refCount <
+//                 std::static_pointer_cast<LFRUReplData>(
+//                     victim->replacementData)->refCount) {
+//             victim = candidate;
+//         }
+//     }
 
     return victim;
 }

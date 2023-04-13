@@ -116,7 +116,7 @@ class BaseCache(ClockedObject):
 
     tags = Param.BaseTags(BaseSetAssoc(), "Tag store")
     replacement_policy = Param.BaseReplacementPolicy(
-        LFRURP(), "Replacement policy"
+        LRURP(), "Replacement policy"
     )
 
     compressor = Param.BaseCacheCompressor(NULL, "Cache compressor.")
